@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 import sys
-from subprocess import Popen, PIPE
 import random
 import math
+from subprocess import Popen, PIPE
 
 def gcd(a, b):
     while b != 0:
@@ -18,9 +18,9 @@ def pollards_rho(n):
     c = random.randint(1, n - 1)
     d = 1
     while d == 1:
-        x = (x*x + c) % n
-        y = (y*y + c) % n
-        y = (y*y + c) % n
+        x = (x * x + c) % n
+        y = (y * y + c) % n
+        y = (y * y + c) % n
         d = gcd(abs(x - y), n)
         if d != 1 and d != n:
             return d
@@ -33,7 +33,7 @@ def fermats_factorization(n):
         temp = t * t - n
         s = math.isqrt(temp)
         if s * s == temp:
-            return t - s
+            return t - s, t + s
         t += 1
         counter += 1
     return None
@@ -57,33 +57,38 @@ def factorize_first_pair(n):
         print(f"Error using factor command: {e}")
         return None
 
-def main(file_path):
-    with open(file_path, 'r') as file:
-        for line in file:
+def factor(number):
+    factors = factorize_first_pair(number)
+    if factors:
+        factors.sort(reverse=True)
+        print(f"{number}={factors[0]}*{factors[1]}")
+    else:
+        factor = pollards_rho(number)
+        if factor and factor != 1 and factor != number:
+            print(f"{number}={max(factor, number // factor)}*{min(factor, number // factor)}")
+        else:
+            result = fermats_factorization(number)
+            if result:
+                print(f"{number}={result[0]}*{result[1]}")
+            else:
+                print(f"Failed to factorize {number}")
+
+if len(sys.argv) != 2:
+    print("Usage: ./rsa <file>")
+    sys.exit(1)
+
+filename = sys.argv[1]
+try:
+    with open(filename, "r") as test:
+        for line in test:
             numbers = line.strip().split(', ')
             for num_str in numbers:
                 try:
                     number = int(num_str)
-                    factors = factorize_first_pair(number)
-                    if factors:
-                        factors.sort(reverse=True)
-                        print(f"{number}={factors[0]}*{factors[1]}")
-                    else:
-                        factor = pollards_rho(number)
-                        if factor and factor != 1 and factor != number:
-                            print(f"{number}={max(factor, number // factor)}*{min(factor, number // factor)}")
-                        else:
-                            factor = fermats_factorization(number)
-                            if factor and factor != 1:
-                                print(f"{number}={max(factor, number // factor)}*{min(factor, number // factor)}")
-                            else:
-                                print(f"Failed to factorize {number}")
+                    factor(number)
                 except ValueError:
                     print(f"Invalid number format: {num_str}")
-
-if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('Usage: ./rsa <file>')
-        sys.exit(1)
-    main(sys.argv[1])
+except FileNotFoundError:
+    print(f"Error: Can't open file {filename}")
+    sys.exit(1)
 
