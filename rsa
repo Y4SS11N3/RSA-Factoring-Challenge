@@ -32,13 +32,18 @@ def factorize(n):
         return [n]
     return [prime_factor] + factorize(n // prime_factor)
 
+def format_output(number, factors):
+    if factors[0] < factors[1]:
+        factors[0], factors[1] = factors[1], factors[0]
+    return f"{number}={factors[0]}*{factors[1]}"
+
+
 def main(file_path):
     with open(file_path, 'r') as file:
         n = int(file.readline().strip())
         factors = factorize(n)
         if len(factors) == 2 and all(factors):
-            factors.sort()  # Sort the factors
-            print(f"{n}={factors[0]}*{factors[1]}")
+            print(format_output(n, factors))
         else:
             print(f"No prime factors found for {n} within the time limit.")
 
@@ -47,4 +52,3 @@ if __name__ == '__main__':
         print('Usage: ./rsa <file>')
         sys.exit(1)
     main(sys.argv[1])
-
