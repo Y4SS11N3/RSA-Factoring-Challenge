@@ -7,19 +7,22 @@ def main(file_path):
     with open(file_path, 'r') as file:
         for line in file:
             number = int(line.strip())
-            factor1, factor2 = factorize_first_pair(number)
-            print(f"{number}={min(factor1, factor2)}*{max(factor1, factor2)}")
+            factors = factorize_all_pairs(number)
+            for factor1, factor2 in factors:
+                print(f"{number}={factor1}*{factor2}")
 
-def factorize_first_pair(n):
+def factorize_all_pairs(n):
     process = Popen(['factor', str(n)], stdout=PIPE)
     (output, _) = process.communicate()
     output = output.decode('utf-8').strip()
     
     _, factors_str = output.split(': ')
-    factors = factors_str.split(' ')
-    first_factor = int(factors[0])
-    second_factor = n // first_factor
-    return first_factor, second_factor
+    factors = [int(factor) for factor in factors_str.split(' ')]
+    pairs = []
+    for i in range(len(factors)):
+        for j in range(i+1, len(factors)):
+            pairs.append((factors[i], factors[j]))
+    return pairs
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
