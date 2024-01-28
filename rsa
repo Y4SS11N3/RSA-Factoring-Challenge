@@ -1,77 +1,37 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import sys
 import random
 import math
-from subprocess import Popen, PIPE
 
 def gcd(a, b):
-    while b != 0:
+    while b:
         a, b = b, a % b
     return a
 
-def pollards_rho(n):
+def pollards_rho(n, iterations_count=10000):
     if n % 2 == 0:
         return 2
-    x = random.randint(1, n - 1)
+    x = random.randint(2, n - 1)
     y = x
     c = random.randint(1, n - 1)
     d = 1
-    while d == 1:
+    for _ in range(iterations_count):
+        if d != 1:
+            break
         x = (x * x + c) % n
         y = (y * y + c) % n
         y = (y * y + c) % n
         d = gcd(abs(x - y), n)
-        if d != 1 and d != n:
-            return d
-    return None
+    return d
 
-def fermats_factorization(n):
-    t = math.ceil(math.sqrt(n))
-    counter = 0
-    while counter < 100000:
-        temp = t * t - n
-        s = math.isqrt(temp)
-        if s * s == temp:
-            return t - s, t + s
-        t += 1
-        counter += 1
-    return None
-
-def factorize_first_pair(n):
-    try:
-        process = Popen(['factor', str(n)], stdout=PIPE)
-        (output, _) = process.communicate()
-        output = output.decode('utf-8').strip()
-
-        if ':' not in output:
-            return None
-
-        _, factors_str = output.split(': ')
-        factors = [int(factor) for factor in factors_str.split()]
-        if len(factors) == 2:
-            return factors
-        else:
-            return None
-    except Exception as e:
-        print(f"Error using factor command: {e}")
-        return None
-
-def factor(number):
-    factors = factorize_first_pair(number)
-    if factors:
-        factors.sort(reverse=True)
-        print(f"{number}={factors[0]}*{factors[1]}")
-    else:
-        factor = pollards_rho(number)
-        if factor and factor != 1 and factor != number:
-            print(f"{number}={max(factor, number // factor)}*{min(factor, number // factor)}")
-        else:
-            result = fermats_factorization(number)
-            if result:
-                print(f"{number}={result[0]}*{result[1]}")
-            else:
-                print(f"Failed to factorize {number}")
+def factorize(n):
+    if n < 4:
+        return n, 1
+    factor = pollards_rho(n)
+    if factor == n:
+        return n, 1
+    return factor, n // factor
 
 if len(sys.argv) != 2:
     print("Usage: ./rsa <file>")
@@ -79,16 +39,16 @@ if len(sys.argv) != 2:
 
 filename = sys.argv[1]
 try:
-    with open(filename, "r") as test:
-        for line in test:
+    with open(filename, "r") as file:
+        for line in file:
             numbers = line.strip().split(', ')
             for num_str in numbers:
-                try:
-                    number = int(num_str)
-                    factor(number)
-                except ValueError:
-                    print(f"Invalid number format: {num_str}")
+                number = int(num_str)
+                p, q = factorize(number)
+                print(f"{number}={p}*{q}")
 except FileNotFoundError:
     print(f"Error: Can't open file {filename}")
     sys.exit(1)
-
+except ValueError as e:
+    print(f"Invalid number format: {e}")
+    sys.exit(1)
