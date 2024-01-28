@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
 
 import sys
+from subprocess import Popen, PIPE
 
 def main(file_path):
     with open(file_path, 'r') as file:
         for line in file:
             number = int(line.strip())
             factor1, factor2 = factorize_first_pair(number)
-            print(f"{number}={factor1}*{factor2}")
+            print(f"{number}={min(factor1, factor2)}*{max(factor1, factor2)}")
 
 def factorize_first_pair(n):
-    for i in range(2, int(n**0.5) + 1):
-        if n % i == 0:
-            return i, n // i
-    return 1, n
+    process = Popen(['factor', str(n)], stdout=PIPE)
+    (output, _) = process.communicate()
+    output = output.decode('utf-8').strip()
+    
+    _, factors_str = output.split(': ')
+    factors = factors_str.split(' ')
+    first_factor = int(factors[0])
+    second_factor = n // first_factor
+    return first_factor, second_factor
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
