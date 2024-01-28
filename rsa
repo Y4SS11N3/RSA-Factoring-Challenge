@@ -60,21 +60,26 @@ def factorize_first_pair(n):
 def main(file_path):
     with open(file_path, 'r') as file:
         for line in file:
-            number = int(line.strip())
-            factors = factorize_first_pair(number)
-            if factors:
-                factors.sort(reverse=True)
-                print(f"{number}={factors[0]}*{factors[1]}")
-            else:
-                factor = pollards_rho(number)
-                if factor and factor != 1 and factor != number:
-                    print(f"{number}={max(factor, number // factor)}*{min(factor, number // factor)}")
-                else:
-                    factor = fermats_factorization(number)
-                    if factor and factor != 1:
-                        print(f"{number}={max(factor, number // factor)}*{min(factor, number // factor)}")
+            numbers = line.strip().split(', ')
+            for num_str in numbers:
+                try:
+                    number = int(num_str)
+                    factors = factorize_first_pair(number)
+                    if factors:
+                        factors.sort(reverse=True)
+                        print(f"{number}={factors[0]}*{factors[1]}")
                     else:
-                        print(f"Failed to factorize {number}")
+                        factor = pollards_rho(number)
+                        if factor and factor != 1 and factor != number:
+                            print(f"{number}={max(factor, number // factor)}*{min(factor, number // factor)}")
+                        else:
+                            factor = fermats_factorization(number)
+                            if factor and factor != 1:
+                                print(f"{number}={max(factor, number // factor)}*{min(factor, number // factor)}")
+                            else:
+                                print(f"Failed to factorize {number}")
+                except ValueError:
+                    print(f"Invalid number format: {num_str}")
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
