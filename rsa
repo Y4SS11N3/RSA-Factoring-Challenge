@@ -33,22 +33,24 @@ def factorize(n):
         return n, 1
     return factor, n // factor
 
-if len(sys.argv) != 2:
-    print("Usage: ./rsa <file>")
-    sys.exit(1)
+def main(filename):
+    try:
+        with open(filename, "r") as file:
+            for line in file:
+                numbers = line.strip().split(', ')
+                for num_str in numbers:
+                    number = int(num_str)
+                    p, q = factorize(number)
+                    if p > q:
+                        p, q = q, p
+                    print(f"{number}={p}*{q}")
+    except FileNotFoundError:
+        print(f"Error: Can't open file {filename}")
+    except ValueError as e:
+        print(f"Invalid number format: {e}")
 
-filename = sys.argv[1]
-try:
-    with open(filename, "r") as file:
-        for line in file:
-            numbers = line.strip().split(', ')
-            for num_str in numbers:
-                number = int(num_str)
-                p, q = factorize(number)
-                print(f"{number}={p}*{q}")
-except FileNotFoundError:
-    print(f"Error: Can't open file {filename}")
-    sys.exit(1)
-except ValueError as e:
-    print(f"Invalid number format: {e}")
-    sys.exit(1)
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: ./rsa <file>")
+        sys.exit(1)
+    main(sys.argv[1])
