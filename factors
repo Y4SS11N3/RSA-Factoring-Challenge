@@ -1,43 +1,26 @@
-#!/usr/bin/env bash
-# This script factorizes numbers from a file into products of two smaller numbers.
+#!/usr/bin/env python3
 
-# This function adjusts and formats the factorization output.
-format_output() {
-    if [ $# -ne 3 ]; then
-        # If more than two factors, multiply all except the first to get the second number.
-        factor_list=("$@")
-        index=0
-        second_factor=1
-        for factor in ${factor_list[*]}; do
-            if [ $index -gt 1 ]; then
-                second_factor=$(echo $factor*$second_factor | bc)
-            fi
-            index=$((index + 1))
-        done
-    else
-        second_factor=$3
-    fi
+import sys
 
-    first_factor=$2
-    input_num=$(echo "$1" | tr ':' '=')
+def main(file_path):
+    with open(file_path, 'r') as file:
+        for line in file:
+            number = int(line.strip())
+            factor1, factor2 = factorize(number)
+            print(f"{number}={factor1}*{factor2}")
 
-    # Swap if second factor is greater than the first.
-    if (( $(echo "$second_factor > $first_factor" | bc -l) )); then
-        temp=$first_factor
-        first_factor=$second_factor
-        second_factor=$temp
-    fi
+def factorize(n):
+    if n % 2 == 0:
+        return n // 2, 2
+    factor = 3
+    while factor * factor <= n:
+        if n % factor == 0:
+            return n // factor, factor
+        factor += 2
+    return 1, n
 
-    echo "$input_num$first_factor*$second_factor"
-}
-
-# Main script execution starts here.
-if [ $# -ne 1 ]; then
-    echo 'Usage: factors <file>'
-    exit 1
-else
-    while read -r number; do
-        factor_result=$(factor "$number")
-        format_output $factor_result
-    done < "$1"
-fi
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print('Usage: ./factors <file>')
+        sys.exit(1)
+    main(sys.argv[1])
