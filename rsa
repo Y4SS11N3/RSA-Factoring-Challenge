@@ -5,6 +5,22 @@ import random
 import math
 from concurrent.futures import ThreadPoolExecutor
 
+def is_prime(n):
+    if n < 2:
+        return False
+    if n == 2 or n == 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    w = 2
+    while i * i <= n:
+        if n % i == 0:
+            return False
+        i += w
+        w = 6 - w
+    return True
+
 def gcd(a, b):
     while b:
         a, b = b, a % b
@@ -27,7 +43,7 @@ def pollards_rho(n, iterations_limit=10000):
     return d if d != n else None
 
 def get_factors(n):
-    if n < 4:
+    if is_prime(n):
         return n, 1
     factor = pollards_rho(n)
     if factor and factor != n:
