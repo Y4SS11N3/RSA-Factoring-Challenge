@@ -9,29 +9,29 @@ def gcd(a, b):
         a, b = b, a % b
     return a
 
-def pollards_rho(n, iterations_count=10000):
+def pollards_rho(n, iterations_limit=10000):
     if n % 2 == 0:
         return 2
     x = random.randint(2, n - 1)
     y = x
     c = random.randint(1, n - 1)
     d = 1
-    for _ in range(iterations_count):
-        if d != 1:
-            break
+    i = 0
+    while i < iterations_limit and d == 1:
         x = (x * x + c) % n
         y = (y * y + c) % n
         y = (y * y + c) % n
         d = gcd(abs(x - y), n)
-    return d
+        i += 1
+    return d if d != n else None
 
-def factorize(n):
+def get_factors(n):
     if n < 4:
         return n, 1
     factor = pollards_rho(n)
-    if factor == n:
-        return n, 1
-    return factor, n // factor
+    if factor and factor != n:
+        return factor, n // factor
+    return n, 1
 
 def main(filename):
     try:
@@ -40,14 +40,16 @@ def main(filename):
                 numbers = line.strip().split(', ')
                 for num_str in numbers:
                     number = int(num_str)
-                    p, q = factorize(number)
+                    p, q = get_factors(number)
                     if p > q:
                         p, q = q, p
                     print(f"{number}={p}*{q}")
     except FileNotFoundError:
         print(f"Error: Can't open file {filename}")
+        sys.exit(1)
     except ValueError as e:
         print(f"Invalid number format: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
