@@ -2,34 +2,28 @@
 
 import sys
 from subprocess import Popen, PIPE
-from math import prod
 
 def main(file_path):
     with open(file_path, 'r') as file:
         for line in file:
             number = int(line.strip())
-            factors = factor(number)
-            formatted_output = format_output(number, factors)
-            print(formatted_output)
+            factor1, factor2 = factorize_first_pair(number)
+            print(f"{number}={factor1}*{factor2}")
 
-def factor(n):
+def factorize_first_pair(n):
     process = Popen(['factor', str(n)], stdout=PIPE)
     (output, _) = process.communicate()
-    return output.decode('utf-8').strip()
+    output = output.decode('utf-8').strip()
+    
+    _, factors_str = output.split(': ')
+    factors = factors_str.split(' ')
+    return int(factors[0]), n // int(factors[0])
 
-def format_output(number, factor_string):
-    _, factors_str = factor_string.split(': ')
-    factors = [int(f) for f in factors_str.split(' ')]
-    
-    if len(factors) > 2:
-        non_trivial_divisor = prod(factors[1:])
+def format_output(number, factor1, factor2):
+    if factor1 > factor2:
+        return f"{number}={factor1}*{factor2}"
     else:
-        non_trivial_divisor = factors[1]
-    
-    if factors[0] > non_trivial_divisor:
-        return f"{number}={factors[0]}*{non_trivial_divisor}"
-    else:
-        return f"{number}={non_trivial_divisor}*{factors[0]}"
+        return f"{number}={factor2}*{factor1}"
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
