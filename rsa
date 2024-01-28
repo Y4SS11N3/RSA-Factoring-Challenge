@@ -3,6 +3,7 @@
 import sys
 import random
 import math
+from concurrent.futures import ThreadPoolExecutor
 
 def gcd(a, b):
     while b:
@@ -33,17 +34,18 @@ def get_factors(n):
         return factor, n // factor
     return n, 1
 
+def factorize_and_print(number):
+    p, q = get_factors(number)
+    if p > q:
+        p, q = q, p
+    print(f"{number}={p}*{q}")
+
 def main(filename):
     try:
         with open(filename, "r") as file:
-            for line in file:
-                numbers = line.strip().split(', ')
-                for num_str in numbers:
-                    number = int(num_str)
-                    p, q = get_factors(number)
-                    if p > q:
-                        p, q = q, p
-                    print(f"{number}={p}*{q}")
+            numbers = [int(num_str) for line in file for num_str in line.strip().split(', ')]
+        with ThreadPoolExecutor() as executor:
+            executor.map(factorize_and_print, numbers)
     except FileNotFoundError:
         print(f"Error: Can't open file {filename}")
         sys.exit(1)
