@@ -10,21 +10,24 @@ def gcd(a, b):
         a, b = b, a % b
     return a
 
-def pollards_rho(n, iterations_limit=10000):
-    if n % 2 == 0:
-        return 2
-    x = random.randint(2, n - 1)
-    y = x
-    c = random.randint(1, n - 1)
-    d = 1
-    i = 0
-    while i < iterations_limit and d == 1:
-        x = (x * x + c) % n
-        y = (y * y + c) % n
-        y = (y * y + c) % n
-        d = gcd(abs(x - y), n)
-        i += 1
-    return d if d != n else None
+def pollards_rho(n, iterations_limit=10000, retries=5):
+    for _ in range(retries):
+        if n % 2 == 0:
+            return 2
+        x = random.randint(2, n - 1)
+        y = x
+        c = random.randint(1, n - 1)
+        d = 1
+        i = 0
+        while i < iterations_limit and d == 1:
+            x = (x * x + c) % n
+            y = (y * y + c) % n
+            y = (y * y + c) % n
+            d = gcd(abs(x - y), n)
+            i += 1
+        if d != n:
+            return d
+    return None
 
 def get_factors(n):
     if n < 4:
