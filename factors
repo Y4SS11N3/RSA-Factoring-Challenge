@@ -24,9 +24,18 @@ def format_output(number, factor_string):
         second_factor = 1
         for factor in factors[1:]:
             second_factor *= int(factor)
-        return f"{number}={factors[0]}*{second_factor}"
+        first_factor = int(factors[0])
+        if first_factor > second_factor:
+            return f"{number}={first_factor}*{second_factor}"
+        else:
+            return f"{number}={second_factor}*{first_factor}"
     else:
-        return f"{number}={factors[0]}*{factors[1]}"
+        first_factor = int(factors[0])
+        second_factor = int(factors[1])
+        if first_factor > second_factor:
+            return f"{number}={first_factor}*{second_factor}"
+        else:
+            return f"{number}={second_factor}*{first_factor}"
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
