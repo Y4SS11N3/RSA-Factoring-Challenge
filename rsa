@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import sys
+from subprocess import Popen, PIPE
 import random
+import math
 
 def gcd(a, b):
     while b != 0:
@@ -24,31 +26,59 @@ def pollards_rho(n):
             return d
     return None
 
-def factorize(n):
-    if n <= 1:
-        return []
-    prime_factor = pollards_rho(n)
-    if prime_factor is None:
-        return [n]
-    return [prime_factor] + factorize(n // prime_factor)
+def fermats_factorization(n):
+    t = math.ceil(math.sqrt(n))
+    counter = 0
+    while counter < 100000:
+        temp = t * t - n
+        s = math.isqrt(temp)
+        if s * s == temp:
+            return t - s
+        t += 1
+        counter += 1
+    return None
 
-def format_output(number, factors):
-    if factors[0] < factors[1]:
-        factors[0], factors[1] = factors[1], factors[0]
-    return f"{number}={factors[0]}*{factors[1]}"
+def factorize_first_pair(n):
+    try:
+        process = Popen(['factor', str(n)], stdout=PIPE)
+        (output, _) = process.communicate()
+        output = output.decode('utf-8').strip()
 
+        if ':' not in output:
+            return None
+
+        _, factors_str = output.split(': ')
+        factors = [int(factor) for factor in factors_str.split()]
+        if len(factors) == 2:
+            return factors
+        else:
+            return None
+    except Exception as e:
+        print(f"Error using factor command: {e}")
+        return None
 
 def main(file_path):
     with open(file_path, 'r') as file:
-        n = int(file.readline().strip())
-        factors = factorize(n)
-        if len(factors) == 2 and all(factors):
-            print(format_output(n, factors))
-        else:
-            print(f"No prime factors found for {n} within the time limit.")
+        for line in file:
+            number = int(line.strip())
+            factors = factorize_first_pair(number)
+            if factors:
+                factors.sort(reverse=True)
+                print(f"{number}={factors[0]}*{factors[1]}")
+            else:
+                factor = pollards_rho(number)
+                if factor and factor != 1 and factor != number:
+                    print(f"{number}={max(factor, number // factor)}*{min(factor, number // factor)}")
+                else:
+                    factor = fermats_factorization(number)
+                    if factor and factor != 1:
+                        print(f"{number}={max(factor, number // factor)}*{min(factor, number // factor)}")
+                    else:
+                        print(f"Failed to factorize {number}")
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print('Usage: ./rsa <file>')
         sys.exit(1)
     main(sys.argv[1])
+
