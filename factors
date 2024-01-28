@@ -2,6 +2,7 @@
 
 import sys
 from subprocess import Popen, PIPE
+from math import prod
 
 def main(file_path):
     with open(file_path, 'r') as file:
@@ -17,25 +18,18 @@ def factor(n):
     return output.decode('utf-8').strip()
 
 def format_output(number, factor_string):
-    parts = factor_string.split(': ')
-    assert len(parts) == 2
-    factors = parts[1].split(' ')
+    _, factors_str = factor_string.split(': ')
+    factors = [int(f) for f in factors_str.split(' ')]
+    
     if len(factors) > 2:
-        second_factor = 1
-        for factor in factors[1:]:
-            second_factor *= int(factor)
-        first_factor = int(factors[0])
-        if first_factor > second_factor:
-            return f"{number}={first_factor}*{second_factor}"
-        else:
-            return f"{number}={second_factor}*{first_factor}"
+        non_trivial_divisor = prod(factors[1:])
     else:
-        first_factor = int(factors[0])
-        second_factor = int(factors[1])
-        if first_factor > second_factor:
-            return f"{number}={first_factor}*{second_factor}"
-        else:
-            return f"{number}={second_factor}*{first_factor}"
+        non_trivial_divisor = factors[1]
+    
+    if factors[0] > non_trivial_divisor:
+        return f"{number}={factors[0]}*{non_trivial_divisor}"
+    else:
+        return f"{number}={non_trivial_divisor}*{factors[0]}"
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
