@@ -1,23 +1,32 @@
 #!/usr/bin/env python3
 
 import sys
+from subprocess import Popen, PIPE
 
 def main(file_path):
     with open(file_path, 'r') as file:
         for line in file:
             number = int(line.strip())
-            factor1, factor2 = factorize(number)
-            print(f"{number}={factor1}*{factor2}")
+            factors = factor(number)
+            formatted_output = format_output(number, factors)
+            print(formatted_output)
 
-def factorize(n):
-    if n % 2 == 0:
-        return n // 2, 2
-    factor = 3
-    while factor * factor <= n:
-        if n % factor == 0:
-            return n // factor, factor
-        factor += 2
-    return 1, n
+def factor(n):
+    process = Popen(['factor', str(n)], stdout=PIPE)
+    (output, _) = process.communicate()
+    return output.decode('utf-8').strip()
+
+def format_output(number, factor_string):
+    parts = factor_string.split(': ')
+    assert len(parts) == 2
+    factors = parts[1].split(' ')
+    if len(factors) > 2:
+        second_factor = 1
+        for factor in factors[1:]:
+            second_factor *= int(factor)
+        return f"{number}={factors[0]}*{second_factor}"
+    else:
+        return f"{number}={factors[0]}*{factors[1]}"
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
