@@ -8,6 +8,8 @@ def main(file_path):
         for line in file:
             number = int(line.strip())
             factor1, factor2 = factorize_first_pair(number)
+            if factor1 < factor2:
+                factor1, factor2 = factor2, factor1
             print(f"{number}={factor1}*{factor2}")
 
 def factorize_first_pair(n):
@@ -17,13 +19,9 @@ def factorize_first_pair(n):
     
     _, factors_str = output.split(': ')
     factors = factors_str.split(' ')
-    return int(factors[0]), n // int(factors[0])
-
-def format_output(number, factor1, factor2):
-    if factor1 > factor2:
-        return f"{number}={factor1}*{factor2}"
-    else:
-        return f"{number}={factor2}*{factor1}"
+    first_factor = int(factors[0])
+    second_factor = n // first_factor
+    return (second_factor, first_factor) if second_factor > first_factor else (first_factor, second_factor)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
