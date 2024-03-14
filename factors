@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import sys
 from subprocess import Popen, PIPE
 import random
@@ -17,18 +18,16 @@ def factorize_first_pair(n):
         process = Popen(['factor', str(n)], stdout=PIPE)
         (output, _) = process.communicate()
         output = output.decode('utf-8').strip()
+
         _, factors_str = output.split(': ')
         factors = factors_str.split(' ')
         first_factor = int(factors[0])
-        second_factor = int(factors[1])
-        return (first_factor, second_factor)
+        second_factor = n // first_factor
+        return (second_factor, first_factor) if second_factor > first_factor else (first_factor, second_factor)
     except:
         # Fallback to Pollard's Rho if factor command fails
         factor = pollards_rho(n)
-        if factor == 1:
-            return (n, 1)
-        else:
-            return (factor, n // factor)
+        return (factor, n // factor) if factor != 1 else (n, 1)
 
 def gcd(a, b):
     while b != 0:
@@ -47,8 +46,8 @@ def pollards_rho(n):
         y = (y*y + c) % n
         y = (y*y + c) % n
         d = gcd(abs(x-y), n)
-    if d == n:
-        return 1
+        if d == n:
+            return 1
     return d
 
 if __name__ == '__main__':
@@ -56,3 +55,5 @@ if __name__ == '__main__':
         print('Usage: ./factors <file>')
         sys.exit(1)
     main(sys.argv[1])
+
+
