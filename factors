@@ -20,7 +20,7 @@ def factorize_first_pair(n):
         _, factors_str = output.split(': ')
         factors = factors_str.split(' ')
         first_factor = int(factors[0])
-        second_factor = n // first_factor
+        second_factor = int(factors[1])
         return (first_factor, second_factor)
     except:
         # Fallback to Pollard's Rho if factor command fails
@@ -51,7 +51,7 @@ def pollards_rho(n):
         return 1
     return d
 
-if __name__ == 'main':
+if __name__ == '__main__':
     if len(sys.argv) != 2:
         print('Usage: ./factors <file>')
         sys.exit(1)
