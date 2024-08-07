@@ -1,59 +1,77 @@
 #!/usr/bin/env python3
-
 import sys
 from subprocess import Popen, PIPE
 import random
+import math
+from multiprocessing import Pool, cpu_count
 
 def main(file_path):
     with open(file_path, 'r') as file:
-        for line in file:
-            number = int(line.strip())
-            factor1, factor2 = factorize_first_pair(number)
-            if factor1 < factor2:
-                factor1, factor2 = factor2, factor1
-            print(f"{number}={factor1}*{factor2}")
+        numbers = [int(line.strip()) for line in file]
+    
+    with Pool(cpu_count()) as p:
+        results = p.map(factorize_number, numbers)
+    
+    for number, (factor1, factor2) in zip(numbers, results):
+        print(f"{number}={max(factor1, factor2)}*{min(factor1, factor2)}")
+
+def factorize_number(n):
+    if n < 1000000:  # Use factor command for smaller numbers
+        return factorize_first_pair(n)
+    else:  # Use custom implementation for larger numbers
+        return pollards_rho_brent(n)
 
 def factorize_first_pair(n):
     try:
         process = Popen(['factor', str(n)], stdout=PIPE)
         (output, _) = process.communicate()
         output = output.decode('utf-8').strip()
-
-        _, factors_str = output.split(': ')
-        factors = factors_str.split(' ')
+        factors = output.split(': ')[1].split(' ')
         first_factor = int(factors[0])
         second_factor = n // first_factor
-        return (second_factor, first_factor) if second_factor > first_factor else (first_factor, second_factor)
+        return (max(first_factor, second_factor), min(first_factor, second_factor))
     except:
-        # Fallback to Pollard's Rho if factor command fails
-        factor = pollards_rho(n)
-        return (factor, n // factor) if factor != 1 else (n, 1)
+        return pollards_rho_brent(n)
 
 def gcd(a, b):
-    while b != 0:
+    while b:
         a, b = b, a % b
     return a
 
-def pollards_rho(n):
+def pollards_rho_brent(n):
     if n % 2 == 0:
-        return 2
-    x = random.randint(1, n-1)
-    y = x
-    c = random.randint(1, n-1)
-    d = 1
-    while d == 1:
-        x = (x*x + c) % n
-        y = (y*y + c) % n
-        y = (y*y + c) % n
-        d = gcd(abs(x-y), n)
-        if d == n:
-            return 1
-    return d
+        return (n // 2, 2)
+    
+    y, c, m = random.randint(1, n-1), random.randint(1, n-1), random.randint(1, n-1)
+    g, r, q = 1, 1, 1
+    
+    while g == 1:
+        x = y
+        for i in range(r):
+            y = (pow(y, 2, n) + c) % n
+        
+        k = 0
+        while k < r and g == 1:
+            ys = y
+            for i in range(min(m, r-k)):
+                y = (pow(y, 2, n) + c) % n
+                q = q * abs(x-y) % n
+            g = gcd(q, n)
+            k += m
+        
+        r *= 2
+    
+    if g == n:
+        while True:
+            ys = (pow(ys, 2, n) + c) % n
+            g = gcd(abs(x-ys), n)
+            if g > 1:
+                break
+    
+    return (g, n // g) if g != n else (n, 1)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print('Usage: ./factors <file>')
         sys.exit(1)
     main(sys.argv[1])
-
-
